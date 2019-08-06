@@ -16,7 +16,7 @@ function BossIdleState:init(tilemap, player, boss)
     self.boss = boss
     self.waitTimer = 0
     self.animation = Animation {
-        frames = {46},
+        frames = {3},
         interval = 1
     }
     self.boss.currentAnimation = self.animation

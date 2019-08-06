@@ -42,6 +42,10 @@ require 'src/states/entity/snail/SnailChasingState'
 require 'src/states/entity/snail/SnailIdleState'
 require 'src/states/entity/snail/SnailMovingState'
 
+require 'src/states/entity/bee/BeeChasingState'
+require 'src/states/entity/bee/BeeIdleState'
+require 'src/states/entity/bee/BeeMovingState'
+
 require 'src/states/entity/boss/BossChasingState'
 require 'src/states/entity/boss/BossIdleState'
 require 'src/states/entity/boss/BossMovingState'
@@ -55,6 +59,7 @@ require 'src/LevelMaker'
 require 'src/BossLevelMaker'
 require 'src/Player'
 require 'src/Snail'
+require 'src/Bee'
 require 'src/Boss'
 require 'src/Tile'
 require 'src/TileMap'
@@ -86,7 +91,8 @@ gTextures = {
     ['keys-locks'] = love.graphics.newImage('graphics/keys_and_locks.png'),
     ['poles'] = love.graphics.newImage('graphics/flags.png'),
     ['flags'] = love.graphics.newImage('graphics/flags.png'),
-    ['skull'] = love.graphics.newImage('graphics/ladders_and_signs.png')
+    ['skull'] = love.graphics.newImage('graphics/ladders_and_signs.png'),
+    ['boss'] = love.graphics.newImage('graphics/boss.png')
 }
 
 gFrames = {
@@ -103,7 +109,8 @@ gFrames = {
     ['keys-locks'] = GenerateQuads(gTextures['keys-locks'], 16, 16),
     ['poles'] = GenerateQuads(gTextures['poles'], 16, 48),
     ['flags'] = GenerateQuads(gTextures['flags'], 48, 16),
-    ['skull'] = GenerateQuads(gTextures['skull'], 16, 16)
+    ['skull'] = GenerateQuads(gTextures['skull'], 16, 16),
+    ['boss'] = GenerateQuads(gTextures['boss'], 48, 48)
 }
 
 -- these need to be added after gFrames is initialized because they refer to gFrames from within

@@ -13,8 +13,8 @@ function BossChasingState:init(tilemap, player, boss)
     self.player = player
     self.boss = boss
     self.animation = Animation {
-        frames = {44, 45},
-        interval = 0.5
+        frames = {1, 2},
+        interval = 1.5
     }
     self.boss.currentAnimation = self.animation
 end
