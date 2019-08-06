@@ -36,14 +36,34 @@ function PlayState:enter(params)
     self.player.score = params.score
     self.player.levelNumber = params.levelNumber
 
-    -- level width increases with player progress
-    self.level = LevelMaker.generate(90 + self.player.levelNumber * 10, 10)
+    -- level width increases with player progress, with boss every 4 levels
+    if self.player.levelNumber % 4 == 0 then
+        self.bossLevel = true
+        self.level = BossLevelMaker.generate(50, 10)
+
+        -- switch to boss theme
+        gSounds['music']:stop()
+        gSounds['boss-music']:setLooping(true)
+        gSounds['boss-music']:setVolume(0.5)
+        gSounds['boss-music']:play()
+    else
+        self.bossLevel = false
+        self.level = LevelMaker.generate(90 + self.player.levelNumber * 10, 10)
+
+        -- return to normal music
+        gSounds['boss-music']:stop()
+        gSounds['music']:play()
+    end
+
     self.tileMap = self.level.tileMap
-    
     self.player.map = self.tileMap
     self.player.level = self.level
 
-    self:spawnEnemies()
+    if self.bossLevel then
+        self:spawnBoss()
+    else
+        self:spawnEnemies()
+    end
 
     self.player:changeState('falling')
 end
@@ -64,6 +84,14 @@ function PlayState:update(dt)
         self.player.x = 0
     elseif self.player.x > TILE_SIZE * self.tileMap.width - self.player.width then
         self.player.x = TILE_SIZE * self.tileMap.width - self.player.width
+    end
+
+    -- warp to skip levels for easier testing
+    if love.keyboard.wasPressed('w') then
+        gStateMachine:change('play', {
+            score = self.player.score,
+            levelNumber = self.player.levelNumber + 1
+        })
     end
 end
 
@@ -147,6 +175,47 @@ function PlayState:spawnEnemies()
                         })
 
                         table.insert(self.level.entities, snail)
+                    end
+                end
+            end
+        end
+    end
+end
+
+function PlayState:spawnBoss()
+    -- spawn bosss in the level
+    for x = 1, self.tileMap.width do
+
+        -- flag for whether there's ground on this column of the level
+        local groundFound = false
+
+        for y = 1, self.tileMap.height do
+            if not groundFound then
+                if self.tileMap.tiles[y][x].id == TILE_ID_GROUND then
+                    groundFound = true
+
+                    -- random chance, 1 in 20
+                    if math.random(4) == 1 then
+                        
+                        -- instantiate boss, declaring in advance so we can pass it into state machine
+                        local boss
+                        boss = Boss {
+                            texture = 'creatures',
+                            x = (x - 1) * TILE_SIZE,
+                            y = (y - 2) * TILE_SIZE + 2,
+                            width = 16,
+                            height = 16,
+                            stateMachine = StateMachine {
+                                ['idle'] = function() return BossIdleState(self.tileMap, self.player, boss) end,
+                                ['moving'] = function() return BossMovingState(self.tileMap, self.player, boss) end,
+                                ['chasing'] = function() return BossChasingState(self.tileMap, self.player, boss) end
+                            }
+                        }
+                        boss:changeState('idle', {
+                            wait = math.random(5)
+                        })
+
+                        table.insert(self.level.entities, boss)
                     end
                 end
             end

@@ -42,14 +42,20 @@ require 'src/states/entity/snail/SnailChasingState'
 require 'src/states/entity/snail/SnailIdleState'
 require 'src/states/entity/snail/SnailMovingState'
 
+require 'src/states/entity/boss/BossChasingState'
+require 'src/states/entity/boss/BossIdleState'
+require 'src/states/entity/boss/BossMovingState'
+
 -- general
 require 'src/Animation'
 require 'src/Entity'
 require 'src/GameObject'
 require 'src/GameLevel'
 require 'src/LevelMaker'
+require 'src/BossLevelMaker'
 require 'src/Player'
 require 'src/Snail'
+require 'src/Boss'
 require 'src/Tile'
 require 'src/TileMap'
 
@@ -64,7 +70,8 @@ gSounds = {
     ['kill'] = love.audio.newSource('sounds/kill.wav'),
     ['kill2'] = love.audio.newSource('sounds/kill2.wav'),
     ['unlock'] = love.audio.newSource('sounds/unlock.wav'),
-    ['level'] = love.audio.newSource('sounds/level.wav')
+    ['level'] = love.audio.newSource('sounds/level.wav'),
+    ['boss-music'] = love.audio.newSource('sounds/boss-music.wav')
 }
 
 gTextures = {
@@ -78,7 +85,8 @@ gTextures = {
     ['creatures'] = love.graphics.newImage('graphics/creatures.png'),
     ['keys-locks'] = love.graphics.newImage('graphics/keys_and_locks.png'),
     ['poles'] = love.graphics.newImage('graphics/flags.png'),
-    ['flags'] = love.graphics.newImage('graphics/flags.png')
+    ['flags'] = love.graphics.newImage('graphics/flags.png'),
+    ['skull'] = love.graphics.newImage('graphics/ladders_and_signs.png')
 }
 
 gFrames = {
@@ -94,7 +102,8 @@ gFrames = {
     ['creatures'] = GenerateQuads(gTextures['creatures'], 16, 16),
     ['keys-locks'] = GenerateQuads(gTextures['keys-locks'], 16, 16),
     ['poles'] = GenerateQuads(gTextures['poles'], 16, 48),
-    ['flags'] = GenerateQuads(gTextures['flags'], 48, 16)
+    ['flags'] = GenerateQuads(gTextures['flags'], 48, 16),
+    ['skull'] = GenerateQuads(gTextures['skull'], 16, 16)
 }
 
 -- these need to be added after gFrames is initialized because they refer to gFrames from within

@@ -56,6 +56,9 @@ PLAYER_JUMP_VELOCITY = -150
 -- snail movement speed
 SNAIL_MOVE_SPEED = 10
 
+-- boss movement speed
+BOSS_MOVE_SPEED = 40
+
 --
 -- tile IDs
 --

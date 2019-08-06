@@ -65,7 +65,7 @@ function LevelMaker.generate(width, height)
             end
 
             -- chance to generate a pillar
-            if x < goalPosition - 1 and math.random(8) == 1 then
+            if x < goalPosition - 1 and x ~= lockPosition + 1 and math.random(8) == 1 then
                 blockHeight = 2
                 
                 -- chance to generate bush on pillar
