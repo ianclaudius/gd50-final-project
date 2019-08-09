@@ -61,7 +61,6 @@ function PlayState:enter(params)
 
     if self.bossLevel then
         self:spawnBoss()
-        self:spawnBees()
     else
         self:spawnEnemies()
     end
@@ -165,6 +164,7 @@ function PlayState:spawnEnemies()
                             y = (y - 2) * TILE_SIZE + 2,
                             width = 16,
                             height = 16,
+                            boss = false,
                             stateMachine = StateMachine {
                                 ['idle'] = function() return SnailIdleState(self.tileMap, self.player, snail) end,
                                 ['moving'] = function() return SnailMovingState(self.tileMap, self.player, snail) end,
@@ -183,84 +183,30 @@ function PlayState:spawnEnemies()
     end
 end
 
-function PlayState:spawnBoss()
-    -- spawn boss in the level
+function PlayState:spawnBoss()    
+    -- spawn "queen bee" style boss in the level    
     for x = 1, self.tileMap.width do
+        if x == 10 then
+            
+            local boss
+            boss = Boss {
+                texture = 'boss',
+                x = (x - 1) * TILE_SIZE,
+                y = 3 * TILE_SIZE,
+                width = 48,
+                height = 48,
+                boss = true,
+                stateMachine = StateMachine {
+                    ['idle'] = function() return BossIdleState(self.tileMap, self.player, boss) end,
+                    ['moving'] = function() return BossMovingState(self.tileMap, self.player, boss) end,
+                    ['chasing'] = function() return BossChasingState(self.tileMap, self.player, boss) end
+                }
+            }
+            
+            -- starts off visible but running, to give player sense of chase
+            boss:changeState('moving')
 
-        -- flag for whether there's ground on this column of the level
-        local groundFound = false
-
-        for y = 1, self.tileMap.height do
-            if not groundFound then
-                if self.tileMap.tiles[y][x].id == TILE_ID_GROUND then
-                    groundFound = true
-
-                    -- random chance, 1 in 10
-                    if math.random(10) == 1 then
-                        
-                        -- instantiate boss, declaring in advance so we can pass it into state machine
-                        local boss
-                        boss = Boss {
-                            texture = 'boss',
-                            x = (x - 1) * TILE_SIZE,
-                            y = 3 * TILE_SIZE,
-                            width = 48,
-                            height = 48,
-                            stateMachine = StateMachine {
-                                ['idle'] = function() return BossIdleState(self.tileMap, self.player, boss) end,
-                                ['moving'] = function() return BossMovingState(self.tileMap, self.player, boss) end,
-                                ['chasing'] = function() return BossChasingState(self.tileMap, self.player, boss) end
-                            }
-                        }
-                        boss:changeState('idle', {
-                            wait = math.random(5)
-                        })
-
-                        table.insert(self.level.entities, boss)
-                    end
-                end
-            end
-        end
-    end
-end
-
-function PlayState:spawnBees()
-    -- spawn bees in the level
-    for x = 1, self.tileMap.width do
-
-        -- flag for whether there's ground on this column of the level
-        local groundFound = false
-
-        for y = 1, self.tileMap.height do
-            if not groundFound then
-                if self.tileMap.tiles[y][x].id == TILE_ID_GROUND then
-                    groundFound = true
-
-                    -- random chance, 1 in 4
-                    if math.random(4) == 1 then
-                        
-                        -- instantiate bee, declaring in advance so we can pass it into state machine
-                        local bee
-                        bee = Bee {
-                            texture = 'creatures',
-                            x = (x - 1) * TILE_SIZE,
-                            y = (y - 2) * TILE_SIZE + 2,
-                            width = 16,
-                            height = 16,
-                            stateMachine = StateMachine {
-                                ['idle'] = function() return BeeIdleState(self.tileMap, self.player, bee) end,
-                                ['moving'] = function() return BeeMovingState(self.tileMap, self.player, bee) end,
-                                ['chasing'] = function() return BeeChasingState(self.tileMap, self.player, bee) end
-                            }
-                        }
-                        bee:changeState('idle', {
-                            wait = math.random(5)
-                        })
-
-                        table.insert(self.level.entities, bee)
-                    end
-                end
-            end
+            table.insert(self.level.entities, boss)
         end
     end
 end

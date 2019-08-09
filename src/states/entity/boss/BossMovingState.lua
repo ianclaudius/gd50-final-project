@@ -20,10 +20,12 @@ function BossMovingState:init(tilemap, player, boss)
     }
     self.boss.currentAnimation = self.animation
 
-    self.movingDirection = math.random(2) == 1 and 'left' or 'right'
+    self.movingDirection = 'right'
     self.boss.direction = self.movingDirection
     self.movingDuration = math.random(5)
     self.movingTimer = 0
+
+    self.beeTimer = 0
 end
 
 function BossMovingState:update(dt)
@@ -31,30 +33,15 @@ function BossMovingState:update(dt)
     self.boss.currentAnimation:update(dt)
 
     -- reset movement direction and timer if timer is above duration
-    if self.movingTimer > self.movingDuration then
-
-        -- chance to go into idle state randomly
-        if math.random(4) == 1 then
-            self.boss:changeState('idle', {
-
-                -- random amount of time for boss to be idle
-                wait = math.random(5)
-            })
-        else
-            self.movingDirection = math.random(2) == 1 and 'left' or 'right'
-            self.boss.direction = self.movingDirection
-            self.movingDuration = math.random(5)
-            self.movingTimer = 0
-        end
-    elseif self.boss.direction == 'left' then
-        self.boss.x = self.boss.x - BOSS_MOVE_SPEED * dt
+    if self.boss.direction == 'left' then
+        self.boss.x = self.boss.x - BOSS_CHASE_SPEED * dt
 
         -- stop the boss if there's a missing tile on the floor to the left or a solid tile directly left
         local tileLeft = self.tilemap:pointToTile(self.boss.x, self.boss.y)
         local tileBottomLeft = self.tilemap:pointToTile(self.boss.x, self.boss.y + self.boss.height)
 
         if (tileLeft and tileBottomLeft) and (tileLeft:collidable() or not tileBottomLeft:collidable()) then
-            self.boss.x = self.boss.x + BOSS_MOVE_SPEED * dt
+            self.boss.x = self.boss.x + BOSS_RETREAT_SPEED * dt
 
             -- reset direction if we hit a wall
             self.movingDirection = 'right'
@@ -64,14 +51,14 @@ function BossMovingState:update(dt)
         end
     else
         self.boss.direction = 'right'
-        self.boss.x = self.boss.x + BOSS_MOVE_SPEED * dt
+        self.boss.x = self.boss.x + BOSS_RETREAT_SPEED * dt
 
         -- stop the boss if there's a missing tile on the floor to the right or a solid tile directly right
         local tileRight = self.tilemap:pointToTile(self.boss.x + self.boss.width, self.boss.y)
         local tileBottomRight = self.tilemap:pointToTile(self.boss.x + self.boss.width, self.boss.y + self.boss.height)
 
         if (tileRight and tileBottomRight) and (tileRight:collidable() or not tileBottomRight:collidable()) then
-            self.boss.x = self.boss.x - BOSS_MOVE_SPEED * dt
+            self.boss.x = self.boss.x - BOSS_CHASE_SPEED * dt
 
             -- reset direction if we hit a wall
             self.movingDirection = 'left'
@@ -81,11 +68,40 @@ function BossMovingState:update(dt)
         end
     end
 
-    -- calculate difference between boss and player on X axis
-    -- and only chase if <= 5 tiles
+    -- calculate difference between boss and player on X axis and only chase if very close
     local diffX = math.abs(self.player.x - self.boss.x)
 
-    if diffX < 5 * TILE_SIZE then
+    if diffX < 2 * TILE_SIZE then
         self.boss:changeState('chasing')
     end
+
+    -- timer.every() had some unexpected behavior, so constructing a simpler timer
+    self.beeTimer = self.beeTimer + dt
+
+    -- bee spawn rate (and thus boss difficulty), scales with level
+    if self.beeTimer >= 12 / self.player.levelNumber then
+        self:spawnBees(self.boss.x)
+        self.beeTimer = 0
+    end
+end
+
+function BossMovingState:spawnBees(loc)
+    -- bees are essentially living projectiles that spawn from the boss
+    local bee
+    bee = Bee {
+        texture = 'creatures',
+        x = loc,
+        y = TILE_SIZE * 5,
+        width = 16,
+        height = 16,
+        boss = false,
+        stateMachine = StateMachine {
+            ['idle'] = function() return BeeIdleState(self.tilemap, self.player, bee) end,
+            ['moving'] = function() return BeeMovingState(self.tilemap, self.player, bee) end,
+            ['chasing'] = function() return BeeChasingState(self.tilemap, self.player, bee) end
+        }
+    }
+    bee:changeState('chasing')
+
+    table.insert(self.player.level.entities, bee)
 end

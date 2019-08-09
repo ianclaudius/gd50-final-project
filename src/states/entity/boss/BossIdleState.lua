@@ -7,7 +7,6 @@
     Author: Colton Ogden
     cogden@cs50.harvard.edu
 ]]
-
 BossIdleState = Class{__includes = BaseState}
 
 function BossIdleState:init(tilemap, player, boss)
@@ -33,11 +32,9 @@ function BossIdleState:update(dt)
         self.boss:changeState('moving')
     end
 
-    -- calculate difference between boss and player on X axis
-    -- and only chase if <= 5 tiles
     local diffX = math.abs(self.player.x - self.boss.x)
 
-    if diffX < 5 * TILE_SIZE then
+    if diffX < 2 * TILE_SIZE then
         self.boss:changeState('chasing')
     end
 end

@@ -26,16 +26,6 @@ function BossLevelMaker.generate(width, height)
     local SIGN = 3
     local SIGN_FRAME = 29
 
-    -- generate matching lock and key at random position
-    local lockPosition = math.random(10, width - 10)
-    local lockFrame = math.random(5, 8)
-    local keyFrame = lockFrame - 4
-
-    -- goal post to increment level, matching color of lock and key
-    local poleFrame = keyFrame + 2
-    local flagFrame = keyFrame * 3
-    local goalPosition = width - 1
-
     -- insert blank tables into tiles for later access
     for x = 1, height do
         table.insert(tiles, {})
@@ -91,100 +81,12 @@ function BossLevelMaker.generate(width, height)
             )
         end
 
-        -- spawn matching lock and key
-        if x == lockPosition then
-            table.insert(objects,
-
-                -- lock block
-                GameObject {
-                    texture = 'keys-locks',
-                    x = (x - 1) * TILE_SIZE,
-                    y = (blockHeight - 1) * TILE_SIZE,
-                    width = 16,
-                    height = 16,
-                    frame = lockFrame,
-                    collidable = true,
-                    consumable = false,
-                    hit = false,
-                    solid = true,
-                    onCollide = function(obj)
-
-                        -- spawn a key if we haven't yet
-                        if not obj.hit then
-                            local key = GameObject {
-                                texture = 'keys-locks',
-                                x = (x - 1) * TILE_SIZE,
-                                y = (blockHeight - 1) * TILE_SIZE - 4,
-                                width = 16,
-                                height = 16,
-                                frame = keyFrame,
-                                collidable = true,
-                                consumable = true,
-                                solid = false,
-                                onConsume = function(player, object)
-                                    gSounds['pickup']:play()
-                                    hasKey = true
-                                    obj.solid = false
-                                    obj.consumable = true
-                                end
-                            }
-                            
-                            Timer.tween(0.1, {
-                                [key] = {y = (blockHeight - 2) * TILE_SIZE}
-                            })
-                            gSounds['powerup-reveal']:play()
-
-                            table.insert(objects, key)
-
-                            obj.hit = true
-                        end
-
-                        gSounds['empty-block']:play()
-                    end,
-                    
-                    -- once unlocked, create goal and allow level progression
-                    onConsume = function(player, object)
-                        gSounds['unlock']:play()
-                        hasKey = false
-
-                        -- spawn pole
-                        table.insert(objects,
-                            GameObject {
-                                texture = 'poles',
-                                x = goalPosition * TILE_SIZE - TILE_SIZE / 2,
-                                y = (blockHeight - 1) * TILE_SIZE,
-                                width = 16,
-                                height = 48,
-                                frame = poleFrame,
-                            }
-                        )
-
-                        --spawn flag
-                        table.insert(objects,
-                            GameObject {
-                                texture = 'flags',
-                                x = goalPosition * TILE_SIZE,
-                                y = (blockHeight - 1) * TILE_SIZE,
-                                width = 16,
-                                height = 16,
-                                frame = flagFrame,
-                                collidable = true,
-                                consumable = true,
-                                solid = false,
-                                
-                                -- advance to next level
-                                onConsume = function(player, object)
-                                    gSounds['level']:play()
-                                    gStateMachine:change('play', {
-                                        score = player.score,
-                                        levelNumber = player.levelNumber + 1
-                                    })
-                                end
-                            }
-                        )
-                    end
-                }
-            )
+        -- spawn pillar, which also forces boss's "last stand"
+        if x == 48 then
+            tiles[4][x] = Tile(x, 4, tileID, topper, tileset, topperset)
+            tiles[5][x] = Tile(x, 5, tileID, nil, tileset, topperset)
+            tiles[6][x] = Tile(x, 6, tileID, nil, tileset, topperset)
+            tiles[7][x].topper = nil
         end
     end
 

@@ -33,6 +33,9 @@ function Entity:init(def)
 
     -- reference to level for tests against other entities + objects
     self.level = def.level
+
+    -- distinguish between boss and normal enemies
+    self.boss = def.boss
 end
 
 function Entity:changeState(state, params)

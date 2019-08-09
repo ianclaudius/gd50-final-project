@@ -44,8 +44,15 @@ function PlayerFallingState:update(dt)
     
     -- go back to start if we fall below the map boundary
     elseif self.player.y > VIRTUAL_HEIGHT then
+        -- upon death, player can continue where they left off, but loses half their points
         gSounds['death']:play()
-        gStateMachine:change('start')
+        gStateMachine:change('play', {
+            score = self.player.score / 2,
+            levelNumber = self.player.levelNumber
+        })
+
+        -- can be re-enabled if starting over at level 1 is preferred
+        -- gStateMachine:change('start')
     
     -- check side collisions and reset position
     elseif love.keyboard.isDown('left') then
@@ -80,9 +87,57 @@ function PlayerFallingState:update(dt)
     -- check if we've collided with any entities and kill them if so
     for k, entity in pairs(self.player.level.entities) do
         if entity:collides(self.player) then
-            gSounds['kill']:play()
-            gSounds['kill2']:play()
-            self.player.score = self.player.score + 100
+            
+            -- for bosses
+            if entity.boss then
+
+                gSounds['boss-kill']:play()
+
+                -- scale boss reward with level
+                self.player.score = self.player.score + self.player.levelNumber * 100
+
+                -- player must kill boss to reveal goal and advance
+                table.insert(self.player.level.objects,
+                    GameObject {
+                        texture = 'poles',
+                        x = 49 * TILE_SIZE - TILE_SIZE / 2,
+                        y = 3 * TILE_SIZE,
+                        width = 16,
+                        height = 48,
+                        frame = 3,
+                    }
+                )
+
+                table.insert(self.player.level.objects,
+                    GameObject {
+                        texture = 'flags',
+                        x = 49 * TILE_SIZE,
+                        y = 3 * TILE_SIZE,
+                        width = 16,
+                        height = 16,
+                        frame = 9,
+                        collidable = true,
+                        consumable = true,
+                        solid = false,
+                        
+                        -- advance to next level
+                        onConsume = function(player, object)
+                            gSounds['level']:play()
+                            gStateMachine:change('play', {
+                                score = player.score,
+                                levelNumber = player.levelNumber + 1
+                            })
+                        end
+                    }
+                )
+            
+            -- for other enemies
+            else
+                gSounds['kill']:play()
+                gSounds['kill2']:play()
+                self.player.score = self.player.score + 100
+            end
+
             table.remove(self.player.level.entities, k)
         end
     end

@@ -34,10 +34,9 @@ function BeeIdleState:update(dt)
     end
 
     -- calculate difference between bee and player on X axis
-    -- and only chase if <= 5 tiles
     local diffX = math.abs(self.player.x - self.bee.x)
 
-    if diffX < 5 * TILE_SIZE then
+    if diffX < 20 * TILE_SIZE then
         self.bee:changeState('chasing')
     end
 end

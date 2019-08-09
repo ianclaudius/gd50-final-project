@@ -12,6 +12,7 @@ Boss = Class{__includes = Entity}
 
 function Boss:init(def)
     Entity.init(self, def)
+    self.boss = true
 end
 
 function Boss:render()

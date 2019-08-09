@@ -31,8 +31,15 @@ function PlayerIdleState:update(dt)
     -- check if we've collided with any entities and die if so
     for k, entity in pairs(self.player.level.entities) do
         if entity:collides(self.player) then
+            -- upon death, player can continue where they left off, but loses half their points
             gSounds['death']:play()
-            gStateMachine:change('start')
+            gStateMachine:change('play', {
+                score = self.player.score / 2,
+                levelNumber = player.levelNumber
+            })
+
+            -- can be re-enabled if starting over at level 1 is preferred
+            -- gStateMachine:change('start')
         end
     end
 end
