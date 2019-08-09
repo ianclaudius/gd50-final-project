@@ -35,7 +35,7 @@ function PlayerIdleState:update(dt)
             gSounds['death']:play()
             gStateMachine:change('play', {
                 score = self.player.score / 2,
-                levelNumber = player.levelNumber
+                levelNumber = self.player.levelNumber
             })
 
             -- can be re-enabled if starting over at level 1 is preferred
