@@ -77,7 +77,7 @@ function PlayerJumpState:update(dt)
             -- upon death, player can continue where they left off, but loses half their points
             gSounds['death']:play()
             gStateMachine:change('play', {
-                score = self.player.score / 2,
+                score = math.floor(self.player.score / 2),
                 levelNumber = self.player.levelNumber
             })
 
